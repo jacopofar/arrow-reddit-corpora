@@ -40,7 +40,7 @@ def process(input_file):
     write_every = 10000
     pbar = tqdm(total=48807699)
     with BZ2File(input_file, 'r') as f, \
-         pq.ParquetWriter('example3.parquet', comment_schema) as writer:
+        pq.ParquetWriter('example.parquet', comment_schema) as writer:
         for line in f:
             # ujson parses JSON fast and also directly from binary :)
             obj = ujson.loads(line)
@@ -53,6 +53,9 @@ def process(input_file):
                     # it's a number or False (??), adjust it
                     if not v:
                         v = None
+                if k not in pending_arrays:
+                    print(f'The key {k} is not known, had value {v}')
+                    continue
                 pending_arrays[k].append(v)
             pending_rows += 1
             if pending_rows % write_every == 0:
@@ -74,3 +77,4 @@ def process(input_file):
 
 if __name__ == '__main__':
     process()
+
